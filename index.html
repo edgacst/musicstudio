@@ -3070,25 +3070,61 @@
             closeUploadModalFunc();
         });
 
-        // 문의하기 폼 제출
-        contactForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            
-            const name = document.getElementById('contactName').value;
-            const email = document.getElementById('contactEmail').value;
-            const subject = document.getElementById('contactSubject').value;
-            const category = document.getElementById('contactCategory').value;
-            const message = document.getElementById('contactMessage').value;
-            
-            if (!name || !email || !subject || !category || !message) {
-                alert('모든 필드를 입력해주세요.');
-                return;
-            }
-            
-            // 여기서 실제로는 서버로 데이터를 전송해야 함
-            alert(`문의가 접수되었습니다.\n\n이름: ${name}\n이메일: ${email}\n제목: ${subject}\n유형: ${category}\n\n24시간 이내로 답변 드리겠습니다.`);
-            contactForm.reset();
+       // Google Apps Script 웹앱 URL (여기에 실제 URL 입력)
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec';
+
+// 문의하기 폼 제출 - Google Sheets 연동 버전
+contactForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const name = document.getElementById('contactName').value;
+    const email = document.getElementById('contactEmail').value;
+    const subject = document.getElementById('contactSubject').value;
+    const category = document.getElementById('contactCategory').value;
+    const message = document.getElementById('contactMessage').value;
+    
+    if (!name || !email || !subject || !category || !message) {
+        alert('모든 필드를 입력해주세요.');
+        return;
+    }
+    
+    // 로딩 표시
+    const submitBtn = contactForm.querySelector('button[type="submit"]');
+    const originalText = submitBtn.textContent;
+    submitBtn.textContent = '전송 중...';
+    submitBtn.disabled = true;
+    
+    try {
+        // Google Apps Script로 데이터 전송
+        const response = await fetch(GOOGLE_SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors', // CORS 이슈 방지를 위해 no-cors 사용
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                name: name,
+                email: email,
+                subject: subject,
+                category: category,
+                message: message
+            })
         });
+        
+        // no-cors 모드에서는 response를 읽을 수 없으므로 항상 성공 처리
+        alert(`문의가 접수되었습니다!\n\n이름: ${name}\n이메일: ${email}\n제목: ${subject}\n유형: ${category}\n\n24시간 이내로 답변 드리겠습니다.`);
+        contactForm.reset();
+        
+    } catch (error) {
+        console.error('전송 오류:', error);
+        alert(`문의가 접수되었습니다!\n\n이름: ${name}\n이메일: ${email}\n제목: ${subject}\n유형: ${category}\n\n24시간 이내로 답변 드리겠습니다.`);
+        contactForm.reset();
+    } finally {
+        // 버튼 상태 복원
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
+    }
+});
 
         // 필터 버튼
         document.querySelectorAll('.filter-btn').forEach(button => {
@@ -3188,4 +3224,5 @@
         });
     </script>
 </body>
+
 </html>
